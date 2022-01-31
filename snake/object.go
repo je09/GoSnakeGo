@@ -10,38 +10,42 @@ import (
 // And a reference to another node if exists.
 type Snake struct {
 	Point Point
-	// TODO: make last element reference.
-	Next *Snake
-	// TODO: get rid of the field inside of this struct
-	field Field
+	Next  *Snake
+	Last  *Snake
+	// TODO: get rid of the field inside of this struct or make it a reference
+	field  Field
+	active bool
 }
 
 func NewSnake(f Field, p Point) (Snake, error) {
 	if bordersOut(f, p) {
 		return Snake{}, errors.New(errorPointArea)
 	}
-	return Snake{p, nil, f}, nil
+	return Snake{p, nil, nil, f, true}, nil
 }
 
 // Move receives coordinates to move snake to and moves
 // all the snake nodes to new location.
 func (s *Snake) Move(p Point) {
+	// TODO: Make a loop instead of dying.
 	if bordersOut(s.field, p) {
 		s.die()
 		return
 	}
 
-	// Go until we have nodes
+	// Go until we change all the nodes.
 	for {
-		// Temporary point of previous node
-		tP := s.Point
+		// Temporary point of previous node.
+		tmp := s.Point
 		s.Point = p
-		p = tP
+		p = tmp
 
 		if s.Next != nil {
-			s.Next.Point = tP
+			s.Next.Point = tmp
 		}
-
+		if !s.active {
+			s.active = true
+		}
 		// Works until the last element of the snake.
 		if s.Next == nil {
 			break
@@ -55,35 +59,15 @@ func (s *Snake) Move(p Point) {
 // Note that if there is no other places to spawn a new node except
 // the place where another node stands, it'll spawn a node here.
 func (s *Snake) NewNode() {
-	for {
-		if s.Next == nil {
-			break
-		}
-
-		s = s.Next
+	// if Last is nil, that means it's the head of the snake.
+	if s.Last == nil {
+		s.Last = s
 	}
-	var newPoint Point
 
-	switch {
-	// There is a space on the right side.
-	case s.Point.X < s.field.maxX:
-		newPoint.X = s.Point.X + s.field.CellSize
-		newPoint.Y = s.Point.Y
-	// There is a space on the left side.
-	case s.Point.X >= 0:
-		newPoint.X = s.Point.X - s.field.CellSize
-		newPoint.Y = s.Point.Y
-	// There is a space bellow.
-	case s.Point.Y < s.field.maxY:
-		newPoint.X = s.Point.X
-		newPoint.Y = s.Point.Y + s.field.CellSize
-	// There is a space above.
-	case s.Point.Y >= 0:
-		newPoint.X = s.Point.X
-		newPoint.Y = s.Point.Y - s.field.CellSize
-	}
-	newS, _ := NewSnake(s.field, newPoint)
-	s.Next = &newS
+	// We don't use NewSnake method because we need to manually set active value.
+	snake := Snake{s.Point, nil, s.Last, s.field, false}
+	s.Last.Next = &snake
+	s.Last = &snake
 }
 
 // Checks if a snake can eat a fruit on the same cell as the head.
@@ -105,6 +89,8 @@ func (s *Snake) die() bool {
 }
 
 // Length returns how many nodes does snake have.
+// As long as we don't need to know this information on the regular basis
+// I think it's good enough to use a method like this.
 func (s *Snake) Length() int {
 	i := 0
 	for {

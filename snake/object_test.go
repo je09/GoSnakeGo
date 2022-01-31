@@ -38,6 +38,7 @@ func TestSnake_NewNode(t *testing.T) {
 	}
 
 	tests := []testCase{
+		// TODO: Change this tests, it doesn't work anymore because of move and spawn logic changes.
 		{
 			name: "down space test", args: testArgs{p: Point{0, 0}, f: Field{2, 2, 1}}, want: Point{0, 1},
 		},
@@ -122,6 +123,7 @@ func TestSnake_eat(t *testing.T) {
 	if s.Next == nil {
 		t.Errorf("Expected next node not to be nil")
 	}
+	// May be false alarms, cause data spawn location is random.
 	if f.Point.X == 1 {
 		t.Errorf("Expected fruit to change location got X=%d", f.Point.X)
 	}
