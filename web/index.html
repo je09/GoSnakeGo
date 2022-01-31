@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoSnakeGo</title>
+    <script type="text/javascript" src="./wasm_exec.js"></script>
+    <script>
+        const go = new Go();
+
+        WebAssembly.instantiateStreaming(fetch("snake.wasm"), go.importObject)
+            .then((result) => {
+                go.run(result.instance);
+            });
+    </script>
+</head>
+<body>
+    <canvas id="snake-game" height="500" width="500">
+        Looks like your browser doesn't support canvas. That's a shame, really.
+    </canvas>
+</body>
+</html>
