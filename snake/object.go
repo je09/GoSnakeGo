@@ -3,50 +3,51 @@ package snake
 import (
 	"errors"
 	"math/rand"
+	"time"
 )
 
 // Snake is a node, contains one of the snake elements
 // And a reference to another node if exists.
 type Snake struct {
-	point Point
-	next  *Snake
+	Point Point
+	// TODO: make last element reference.
+	Next *Snake
+	// TODO: get rid of the field inside of this struct
 	field Field
-	// If true, show this node on the field.
-	// We need it because of the situations when a new node needs to be spawned, but there is no space left.
-	show bool
-}
-
-func bordersOut(f Field, p Point) bool {
-	return p.x > f.maxX || p.y > f.maxY || p.x < 0 || p.y < 0
 }
 
 func NewSnake(f Field, p Point) (Snake, error) {
 	if bordersOut(f, p) {
 		return Snake{}, errors.New(errorPointArea)
 	}
-	return Snake{p, nil, f, true}, nil
+	return Snake{p, nil, f}, nil
 }
 
 // Move receives coordinates to move snake to and moves
 // all the snake nodes to new location.
 func (s *Snake) Move(p Point) {
 	if bordersOut(s.field, p) {
-		panic(errorMoveArea)
+		s.die()
 		return
 	}
 
-	ss := s
-
 	// Go until we have nodes
-	for ss.next != nil {
+	for {
 		// Temporary point of previous node
-		tP := ss.point
-		ss.point = p
+		tP := s.Point
+		s.Point = p
 		p = tP
-		// TODO: Think, do we need this if?
-		if ss.next != nil {
-			ss = ss.next
+
+		if s.Next != nil {
+			s.Next.Point = tP
 		}
+
+		// Works until the last element of the snake.
+		if s.Next == nil {
+			break
+		}
+
+		s = s.Next
 	}
 }
 
@@ -54,50 +55,41 @@ func (s *Snake) Move(p Point) {
 // Note that if there is no other places to spawn a new node except
 // the place where another node stands, it'll spawn a node here.
 func (s *Snake) NewNode() {
-	lastS := s
-	for lastS.next != nil {
-		lastS = s.next
+	for {
+		if s.Next == nil {
+			break
+		}
+
+		s = s.Next
 	}
 	var newPoint Point
 
 	switch {
-	// There is a space bellow. \/
-	case lastS.point.y < lastS.field.maxY:
-		{
-			newPoint.x = lastS.point.x
-			newPoint.y = lastS.point.y + 1
-			break
-		}
-	// There is a space on the right side. >
-	case lastS.point.x < lastS.field.maxX:
-		{
-			newPoint.x = lastS.point.x + 1
-			newPoint.y = lastS.point.y
-			break
-		}
-	// There is a space above. /\
-	case lastS.point.y >= 0:
-		{
-			newPoint.x = lastS.point.x
-			newPoint.y = lastS.point.y - 1
-			break
-		}
-	// There is a space on the left side. <
-	case lastS.point.x >= 0:
-		{
-			newPoint.x = lastS.point.x - 1
-			newPoint.y = lastS.point.y
-			break
-		}
+	// There is a space on the right side.
+	case s.Point.X < s.field.maxX:
+		newPoint.X = s.Point.X + s.field.CellSize
+		newPoint.Y = s.Point.Y
+	// There is a space on the left side.
+	case s.Point.X >= 0:
+		newPoint.X = s.Point.X - s.field.CellSize
+		newPoint.Y = s.Point.Y
+	// There is a space bellow.
+	case s.Point.Y < s.field.maxY:
+		newPoint.X = s.Point.X
+		newPoint.Y = s.Point.Y + s.field.CellSize
+	// There is a space above.
+	case s.Point.Y >= 0:
+		newPoint.X = s.Point.X
+		newPoint.Y = s.Point.Y - s.field.CellSize
 	}
-	newS, _ := NewSnake(lastS.field, newPoint)
-	lastS.next = &newS
+	newS, _ := NewSnake(s.field, newPoint)
+	s.Next = &newS
 }
 
-// Checks if a snake can eat a fruit on the same square as the head.
+// Checks if a snake can eat a fruit on the same cell as the head.
 // If true, then snake grows and fruit spawns in a new location.
 func (s *Snake) eat(f *Fruit) bool {
-	if s.point == f.point {
+	if s.Point == f.Point {
 		s.NewNode()
 		f.Spawn(s.field)
 		return true
@@ -106,38 +98,63 @@ func (s *Snake) eat(f *Fruit) bool {
 	return false
 }
 
-// If snake goes outside the field it might die. =(
+// TODO: if snake eats it's tail it dies.
+// If snake goes outside the field returns true.
 func (s *Snake) die() bool {
-	return bordersOut(s.field, s.point)
+	return bordersOut(s.field, s.Point)
+}
+
+// Length returns how many nodes does snake have.
+func (s *Snake) Length() int {
+	i := 0
+	for {
+		i++
+		if s.Next == nil {
+			break
+		}
+
+		s = s.Next
+	}
+
+	return i
 }
 
 type Fruit struct {
-	point Point
+	Point Point
+}
+
+func NewFruit(f Field) Fruit {
+	// To create a new fruit it has to be somewhere, so let it be outside the game field.
+	fr := Fruit{Point{-1, -1}}
+	fr.Spawn(f)
+	return fr
 }
 
 func (f *Fruit) Spawn(field Field) {
+	rand.Seed(time.Now().Unix())
 	p := Point{
-		x: rand.Intn(field.maxX),
-		y: rand.Intn(field.maxY),
+		X: rand.Intn(field.maxX),
+		Y: rand.Intn(field.maxY),
 	}
 
-	f.point = p
+	f.Point = p
 }
 
 type Point struct {
-	x int
-	y int
-}
-
-func NewPoint(x int, y int) Point {
-	return Point{x, y}
+	X int
+	Y int
 }
 
 type Field struct {
-	maxX int
-	maxY int
+	maxX     int
+	maxY     int
+	CellSize int
 }
 
-func NewField(mX int, mY int) Field {
-	return Field{mX, mY}
+func NewField(mX int, mY int, size int) Field {
+	return Field{mX, mY, size}
+}
+
+func bordersOut(f Field, p Point) bool {
+	return p.X > f.maxX || p.Y > f.maxY || p.X < 0 || p.Y < 0
 }
