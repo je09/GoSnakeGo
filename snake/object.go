@@ -35,17 +35,19 @@ func (s *Snake) Move(p Point) {
 
 	// Go until we change all the nodes.
 	for {
-		// Temporary point of previous node.
+		// If a node was inactive, we do nothing 'cause it's already on the right location.
+		if !s.active {
+			s.active = true
+			break
+		}
+
+		// Remember current point of the head node.
+		// Change it to a location we're heading to (assuming this location is 1 cell away).
+		// Set "current point of the head node" as a point we're heading to.
 		tmp := s.Point
 		s.Point = p
 		p = tmp
 
-		if s.Next != nil {
-			s.Next.Point = tmp
-		}
-		if !s.active {
-			s.active = true
-		}
 		// Works until the last element of the snake.
 		if s.Next == nil {
 			break
@@ -65,7 +67,7 @@ func (s *Snake) NewNode() {
 	}
 
 	// We don't use NewSnake method because we need to manually set active value.
-	snake := Snake{s.Point, nil, s.Last, s.field, false}
+	snake := Snake{s.Last.Point, nil, s.Last, s.field, false}
 	s.Last.Next = &snake
 	s.Last = &snake
 }

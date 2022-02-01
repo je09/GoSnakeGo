@@ -26,53 +26,6 @@ func TestFruit_Spawn(t *testing.T) {
 }
 
 func TestSnake_NewNode(t *testing.T) {
-	type testArgs struct {
-		p Point
-		f Field
-	}
-
-	type testCase struct {
-		name string
-		args testArgs
-		want Point
-	}
-
-	tests := []testCase{
-		// TODO: Change this tests, it doesn't work anymore because of move and spawn logic changes.
-		{
-			name: "down space test", args: testArgs{p: Point{0, 0}, f: Field{2, 2, 1}}, want: Point{0, 1},
-		},
-		{
-			name: "right space test", args: testArgs{p: Point{0, 2}, f: Field{2, 2, 1}}, want: Point{1, 2},
-		},
-		{
-			name: "up space test", args: testArgs{p: Point{2, 2}, f: Field{2, 2, 1}}, want: Point{2, 1},
-		},
-		// Can't think of the way to test it
-		//{
-		//	name: "left space test", args: testArgs{p: Point{1, 0}, f: Field{1, 1}}, want: Point{0, 0},
-		//},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s, err := NewSnake(tt.args.f, tt.args.p)
-			if err != nil {
-				panic(err)
-			}
-			s.NewNode()
-			if s.Next == nil {
-				t.Errorf("Expected next pointer not nil got nil")
-			}
-			if s.Next.Point != tt.want {
-				t.Errorf("Expected next point (%d, %d) got (%d, %d)",
-					tt.want.X, tt.want.Y, s.Next.Point.X, s.Next.Point.Y)
-			}
-		})
-	}
-}
-
-func TestSnake_NewNode2(t *testing.T) {
 	s, err := NewSnake(Field{999, 999, 1}, Point{0, 0})
 	if err != nil {
 		panic(err)
@@ -83,6 +36,32 @@ func TestSnake_NewNode2(t *testing.T) {
 
 	for i := 0; i < 99; i++ {
 		s.NewNode()
+		s.Move(Point{1 + i, 0})
+	}
+
+	ss := s
+
+	for i := 0; i < 99; i++ {
+		if ss.Point == ss.Next.Point {
+			t.Errorf("Expected next pointer to be different from a previous one, got: %d", ss.Next.Point)
+		}
+		ss = *ss.Next
+	}
+
+	s, err = NewSnake(Field{999, 999, 1}, Point{0, 0})
+
+	for i := 0; i < 99; i++ {
+		s.NewNode()
+		s.Move(Point{0, 1 + i})
+	}
+
+	ss = s
+
+	for i := 0; i < 99; i++ {
+		if ss.Point == ss.Next.Point {
+			t.Errorf("Expected next pointer to be different from a previous one, got: %d", ss.Next.Point)
+		}
+		ss = *ss.Next
 	}
 
 	if s.Length() != 100 {
