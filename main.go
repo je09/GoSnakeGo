@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/je09/GoSnakeGo/snake"
 	"sync"
 	"syscall/js"
@@ -31,7 +30,8 @@ func bootstrapApp() {
 	// Setting game field size based on canvas area.
 	height = snakeGame.Get("height").Int() / size
 	width = snakeGame.Get("width").Int() / size
-	f := snake.NewField(width, height, size)
+	// We subtract here to prevent player go outside the render borders.
+	f := snake.NewField(width-size, height-size, size)
 
 	kCh := make(chan snake.Key)
 	pos := make(chan snake.Positions)
@@ -41,7 +41,7 @@ func bootstrapApp() {
 
 	wg.Add(2)
 	go snake.Loop(f, stop, kCh, pos, &wg)
-	go animate(pos, stop, &wg)
+	go render(pos, stop, &wg)
 
 	// Default position for snake to crawl to.
 	kCh <- "ArrowRight"
@@ -66,40 +66,4 @@ func bootstrapApp() {
 	window.Call("addEventListener", "keydown", keyboardListener)
 
 	wg.Wait()
-}
-
-// Renders game frames when necessary.
-func animate(pos chan snake.Positions, stop chan struct{}, wg *sync.WaitGroup) {
-	for {
-		select {
-		case pos := <-pos:
-			// Clear game field.
-			ctx.Call("clearRect", 0, 0, width*10, height*10)
-			drawSnake(pos.Player)
-			drawFruit(pos.FruitObj)
-		case <-stop:
-			wg.Done()
-			break
-		}
-	}
-}
-
-func drawSnake(s *snake.Snake) {
-	for {
-		drawRect(s.Point.X*10, s.Point.Y*10, 10, "black")
-		fmt.Println(s.Length(), s.Point.X, s.Point.Y)
-		if s.Next == nil {
-			break
-		}
-		s = s.Next
-	}
-}
-
-func drawFruit(f *snake.Fruit) {
-	drawRect(f.Point.X*10, f.Point.Y*10, 10, "red")
-}
-
-func drawRect(x int, y int, size int, clr string) {
-	ctx.Set("fillStyle", clr)
-	ctx.Call("fillRect", x, y, size, size)
 }

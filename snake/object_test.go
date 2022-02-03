@@ -69,6 +69,29 @@ func TestSnake_NewNode(t *testing.T) {
 	}
 }
 
+func TestSnake_Move(t *testing.T) {
+	s, _ := NewSnake(Field{999, 999, 1}, Point{0, 0})
+	s.NewNode()
+	s.Move(Point{1, 0})
+	for i := 0; i < 99; i++ {
+		s.Move(Point{2 + i, 0})
+	}
+	s.NewNode()
+	s.Move(Point{101, 0})
+
+	ss := s
+
+	for {
+		if ss.Next == nil {
+			break
+		}
+		if ss.Point == ss.Next.Point {
+			t.Errorf("Expected next pointer to be different from a previous one, got: %d", ss.Next.Point)
+		}
+		ss = *ss.Next
+	}
+}
+
 func TestSnakeMove(t *testing.T) {
 	s, err := NewSnake(Field{10, 10, 1}, Point{0, 0})
 	if err != nil {

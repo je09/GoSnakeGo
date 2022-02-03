@@ -17,14 +17,15 @@ type Positions struct {
 func Loop(f Field, stop chan struct{}, kCh chan Key, pos chan Positions, wg *sync.WaitGroup) {
 	fmt.Println("Game loop had started")
 	s, err := NewSnake(f, Point{0, 0})
-	fr := NewFruit(f)
 	if err != nil {
 		panic(err)
 		return
 	}
 
+	fr := NewFruit(f)
+
 	score := 0
-	d := time.Second / 2
+	d := time.Second / 10
 	var k, key Key
 
 	for {
@@ -39,7 +40,7 @@ func Loop(f Field, stop chan struct{}, kCh chan Key, pos chan Positions, wg *syn
 				score++
 			}
 			if s.die() {
-				fmt.Println("End game")
+				fmt.Println("Game over!")
 				stop <- struct{}{}
 				wg.Done()
 			}
@@ -50,7 +51,6 @@ func Loop(f Field, stop chan struct{}, kCh chan Key, pos chan Positions, wg *syn
 }
 
 func move(s *Snake, k Key) {
-	fmt.Println(k)
 	switch k {
 	case "ArrowUp":
 		s.Move(Point{s.Point.X, s.Point.Y - 1})
@@ -64,12 +64,10 @@ func move(s *Snake, k Key) {
 }
 
 func idleMove(s *Snake, k Key, t time.Duration) {
-	fmt.Println(s.Point.X, s.Point.Y)
 	move(s, k)
 	time.Sleep(t)
 }
 
 func sendUpdate(s *Snake, f *Fruit, ch chan Positions) {
-	fmt.Println("Update")
 	ch <- Positions{s, f}
 }

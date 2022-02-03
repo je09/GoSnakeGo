@@ -87,7 +87,25 @@ func (s *Snake) eat(f *Fruit) bool {
 // TODO: if snake eats it's tail it dies.
 // If snake goes outside the field returns true.
 func (s *Snake) die() bool {
-	return bordersOut(s.field, s.Point)
+	p := s.Point
+	ss := s.Next
+	if ss == nil {
+		return false
+	}
+
+	for {
+		if ss.Point == p && ss.active {
+			return true
+		}
+
+		if ss.Next == nil {
+			break
+		}
+
+		ss = ss.Next
+	}
+
+	return false
 }
 
 // Length returns how many nodes does snake have.
