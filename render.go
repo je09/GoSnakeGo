@@ -16,7 +16,7 @@ func render(pos chan snake.Positions, stop chan struct{}, wg *sync.WaitGroup) {
 			drawFruit(pos.FruitObj)
 		case <-stop:
 			wg.Done()
-			break
+			drawGameOver()
 		}
 	}
 }
@@ -38,4 +38,9 @@ func drawFruit(f *snake.Fruit) {
 func drawRect(x int, y int, size int, clr string) {
 	ctx.Set("fillStyle", clr)
 	ctx.Call("fillRect", x, y, size, size)
+}
+
+func drawGameOver() {
+	ctx.Set("font", "30px Arial")
+	ctx.Call("strokeText", "Game Over", height/2, width/2)
 }

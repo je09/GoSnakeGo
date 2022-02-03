@@ -97,18 +97,19 @@ func TestSnakeMove(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	s.Move(Point{1, 0})
-	if s.Point.X != 1 {
-		t.Errorf("Expected snake to have Y=%d, got Y=%d", 1, s.Point.X)
+
+	for i := 0; i < 20; i++ {
+		s.Move(Point{i + 1, 0})
+		if s.Point.X > s.field.maxX {
+			t.Errorf("Expected x not be grater than %d, got: %d", s.field.maxX, s.Point.X)
+		}
 	}
 
-	s.NewNode()
-	s.Move(Point{2, 0})
-	if s.Point.X != 2 {
-		t.Errorf("Expected head to have X=%d, got X=%d", 2, s.Point.X)
-	}
-	if s.Next.Point.X != 1 {
-		t.Errorf("Expected next node to have X=%d, got X=%d", 1, s.Point.X)
+	for i := 0; i < 20; i++ {
+		s.Move(Point{0, i - 1})
+		if s.Point.Y > s.field.maxY && s.Point.Y > 0 {
+			t.Errorf("Expected y not be grater than %d, got: %d", s.field.maxX, s.Point.Y)
+		}
 	}
 }
 

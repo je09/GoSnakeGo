@@ -27,10 +27,11 @@ func NewSnake(f Field, p Point) (Snake, error) {
 // Move receives coordinates to move snake to and moves
 // all the snake nodes to new location.
 func (s *Snake) Move(p Point) {
-	// TODO: Make a loop instead of dying.
+	// Infinite loop of snake coordinates.
 	if bordersOut(s.field, p) {
-		s.die()
-		return
+		// We use Max - 1, to prevent infinite looping to 0.
+		p.X = abs(p.X, s.field.maxX-1) % s.field.maxX
+		p.Y = abs(p.Y, s.field.maxY-1) % s.field.maxY
 	}
 
 	// Go until we change all the nodes.
@@ -55,6 +56,13 @@ func (s *Snake) Move(p Point) {
 
 		s = s.Next
 	}
+}
+
+func abs(n int, m int) int {
+	if n < 0 {
+		return m
+	}
+	return n
 }
 
 // NewNode spawns new node of snake, when it ate a fruit.
