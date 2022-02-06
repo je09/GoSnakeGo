@@ -6,7 +6,6 @@
     <script type="text/javascript" src="./wasm_exec.js"></script>
     <script>
         const go = new Go();
-
         WebAssembly.instantiateStreaming(fetch("snake.wasm"), go.importObject)
             .then((result) => {
                 go.run(result.instance);
