@@ -7,6 +7,7 @@ import (
 
 // Renders game frames when necessary.
 func render(pos chan snake.Positions, stop chan struct{}, wg *sync.WaitGroup) {
+	var score int
 	for {
 		select {
 		case pos := <-pos:
@@ -14,9 +15,11 @@ func render(pos chan snake.Positions, stop chan struct{}, wg *sync.WaitGroup) {
 			ctx.Call("clearRect", 0, 0, width*10+10, height*10+10)
 			drawSnake(pos.Player)
 			drawFruit(pos.FruitObj)
+			score = pos.Player.Length()
 		case <-stop:
+			window.Call("removeEventListener", "keydown", keyboardListener)
 			wg.Done()
-			drawGameOver()
+			drawGameOver(score)
 		}
 	}
 }
@@ -40,7 +43,8 @@ func drawRect(x int, y int, size int, clr string) {
 	ctx.Call("fillRect", x, y, size, size)
 }
 
-func drawGameOver() {
+func drawGameOver(score int) {
 	ctx.Set("font", "30px Arial")
-	ctx.Call("strokeText", "Game Over", height/2, width/2)
+	ctx.Set("textAlign", "center")
+	ctx.Call("fillText", "Game Over", height*size/2, width*size/2)
 }

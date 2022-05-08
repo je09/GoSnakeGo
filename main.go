@@ -11,22 +11,28 @@ const (
 )
 
 var (
-	ctx    js.Value
-	height int
-	width  int
+	window           js.Value
+	snakeGame        js.Value
+	ctx              js.Value
+	keyboardListener interface{}
+	height           int
+	width            int
 )
 
 func main() {
+	setup()
 	bootstrapApp()
 }
 
-func bootstrapApp() {
+func setup() {
 	// Getting window objects.
-	window := js.Global()
+	window = js.Global()
 	document := js.Global().Get("document")
-	snakeGame := document.Call("getElementById", "snake-game")
+	snakeGame = document.Call("getElementById", "snake-game")
 	ctx = snakeGame.Call("getContext", "2d")
+}
 
+func bootstrapApp() {
 	// Setting game field size based on canvas area.
 	height = snakeGame.Get("height").Int() / size
 	width = snakeGame.Get("width").Int() / size
@@ -53,7 +59,7 @@ func bootstrapApp() {
 		"ArrowLeft",
 	}
 
-	keyboardListener := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	keyboardListener = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		k := snake.Key(args[0].Get("code").String())
 		// Test if this an arrow key.
 		for _, a := range allowedKeys {
